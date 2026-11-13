@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyFlow — AI-Powered Habit & Assignment Tracker (Step 6)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 md:p-8">
+
+  <!-- Main App Container -->
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- 1. Header & Overall Progress Card -->
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-950/70 border border-indigo-800/60 px-2.5 py-1 rounded-full">
+              Step 6: AI Study Copilot & Smart Task Breakdown
+            </span>
+            <span id="saveStatusBadge" class="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Auto-saved locally
+            </span>
+            <button
+              id="themeToggleBtn"
+              type="button"
+              class="text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-full transition"
+            >
+              ☀️ Light Mode
+            </button>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            StudyFlow Tracker
+          </h1>
+          <p class="text-sm text-slate-400 mt-1">
+            AI-assisted study scheduling, 7-day habit streaks, Pomodoro focus timer, and coursework organizer.
+          </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">7-Day Habit Rate</div>
+            <div id="weeklyHabitRateText" class="text-lg font-bold text-amber-400">0%</div>
+          </div>
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">Focus Logged</div>
+            <div id="focusMinutesText" class="text-lg font-bold text-emerald-400">0 mins</div>
+          </div>
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">Today's Completion</div>
+            <div id="overallStatsText" class="text-lg font-bold text-indigo-400">0 / 0 Done (0%)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-4">
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="overallProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. NEW IN STEP 6: AI Study Copilot Panel -->
+    <section class="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 sm:p-6 shadow-lg space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            <h2 class="text-lg font-bold text-white">✨ AI Study Copilot</h2>
+            <span id="aiEngineModeBadge" class="text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-0.5 rounded-full">
+              Smart Local AI (Ready)
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Ranks your deadlines, splits complex assignments into subtasks, and builds daily study plans.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            id="aiGeneratePlanBtn"
+            type="button"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition"
+          >
+            ✨ Generate Today's Study Plan
+          </button>
+          <button
+            id="aiQuizMeBtn"
+            type="button"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs px-3.5 py-2 rounded-xl transition"
+          >
+            🧠 Quiz My Pending Subjects
+          </button>
+          <button
+            id="toggleApiKeyDrawerBtn"
+            type="button"
+            class="text-xs text-slate-400 hover:text-indigo-300 px-2.5 py-1.5 rounded-lg border border-slate-800 transition"
+          >
+            ⚙️ Gemini API Key
+          </button>
+        </div>
+      </div>
+
+      <!-- Optional Live Gemini API Key Drawer -->
+      <div id="apiKeyDrawer" class="hidden sub-surface bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label for="geminiApiKeyInput" class="text-xs text-slate-300 font-medium">
+            Optional: Connect live Google Gemini API (<code class="text-indigo-300">gemini-2.5-flash</code>)
+          </label>
+          <span class="text-[11px] text-slate-400">Leaves built-in Smart AI active if left blank</span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input
+            id="geminiApiKeyInput"
+            type="password"
+            placeholder="Paste your Google AI Studio API key (AIza...)..."
+            aria-label="Gemini API Key"
+            class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <button
+            id="saveApiKeyBtn"
+            type="button"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition shrink-0"
+          >
+            Save Key
+          </button>
+          <button
+            id="clearApiKeyBtn"
+            type="button"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-xl transition shrink-0"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Ask AI Study Coach Form -->
+      <form id="aiAskForm" class="flex flex-col sm:flex-row gap-2">
+        <input
+          id="aiPromptInput"
+          type="text"
+          placeholder="Ask AI Coach (e.g., 'Break down my DBMS lab', 'Give me 3 revision tips for OS', 'What should I do first?')..."
+          aria-label="Ask AI Study Coach"
+          class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+        />
+        <button
+          type="submit"
+          id="aiAskSubmitBtn"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition shrink-0"
+        >
+          Ask AI Coach
+        </button>
+      </form>
+
+      <!-- AI Output Card -->
+      <div class="sub-surface bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span id="aiResponseTitle" class="text-xs font-semibold text-indigo-300">
+            AI Recommendation
+          </span>
+          <button
+            id="aiFocusRecommendedBtn"
+            type="button"
+            class="text-[11px] font-medium bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 px-2.5 py-1 rounded-lg transition"
+          >
+            🎯 Load Top Task in Pomodoro Timer
+          </button>
+        </div>
+        <div id="aiResponseBody" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line"></div>
+      </div>
+    </section>
+
+    <!-- 3. Pomodoro Focus Timer + Subject Breakdown Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left: Pomodoro Focus Timer (7 cols on lg) -->
+      <div class="card-surface lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              Pomodoro Focus Timer
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Pick a study task and run a distraction-free session</p>
+          </div>
+
+          <!-- Sound Mute Toggle -->
+          <button
+            id="muteAudioBtn"
+            type="button"
+            class="text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition"
+          >
+            🔔 Chime: On
+          </button>
+        </div>
+
+        <!-- Timer Mode Tabs -->
+        <div id="timerModeGroup" class="flex flex-wrap gap-2 mb-4" role="group" aria-label="Timer duration modes">
+          <button
+            type="button"
+            data-mode="focus"
+            data-minutes="25"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition"
+          >
+            25m Focus
+          </button>
+          <button
+            type="button"
+            data-mode="short"
+            data-minutes="5"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+          >
+            5m Short Break
+          </button>
+          <button
+            type="button"
+            data-mode="long"
+            data-minutes="15"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+          >
+            15m Long Break
+          </button>
+        </div>
+
+        <!-- Clock Display & Controls -->
+        <div class="sub-surface bg-slate-950/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-center sm:text-left">
+            <div id="timerReadout" class="text-4xl sm:text-5xl font-bold font-mono tracking-wider text-white">
+              25:00
+            </div>
+            <p id="timerStatusLabel" class="text-xs text-slate-400 mt-1">
+              Ready to start a 25-minute focus block
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              id="startPauseTimerBtn"
+              type="button"
+              class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition"
+            >
+              Start Timer
+            </button>
+            <button
+              id="resetTimerBtn"
+              type="button"
+              class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm px-4 py-2.5 rounded-xl border border-slate-700 transition"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Focus Target Selector -->
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
+          <label for="focusTaskSelect" class="text-xs font-medium text-slate-400 shrink-0">
+            Currently focusing on:
+          </label>
+          <select
+            id="focusTaskSelect"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+          ></select>
+        </div>
+      </div>
+
+      <!-- Right: Coursework Subject Breakdown (5 cols on lg) -->
+      <div class="card-surface lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                Subject Progress
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Coursework completion by subject</p>
+            </div>
+            <span id="highPriorityCountBadge" class="text-xs font-medium bg-rose-950/80 text-rose-300 border border-rose-800/60 px-2.5 py-1 rounded-full">
+              0 High Priority left
+            </span>
+          </div>
+
+          <!-- Dynamic Subject Bars Container -->
+          <div id="subjectBreakdownList" class="space-y-3 mt-4"></div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 mt-4 pt-3 border-t border-slate-800">
+          Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded">/</kbd> anywhere to jump straight to assignment search.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- 4. Two-Column Layout: Daily Habits + Assignments -->
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- LEFT COLUMN: Daily Study Habits with 7-Day Consistency Grid -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              Daily Study Habits
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Check off today or tap any day pill in the 7-day strip</p>
+          </div>
+          <span id="habitCountBadge" class="text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2.5 py-1 rounded-full">
+            0 / 0
+          </span>
+        </div>
+
+        <!-- Add Habit Form -->
+        <form id="habitForm" class="flex gap-2 mb-4">
+          <input
+            id="habitInput"
+            type="text"
+            placeholder="e.g., Practice Python for 30 mins..."
+            aria-label="New habit name"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          />
+          <button
+            type="submit"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition shrink-0"
+          >
+            + Add
+          </button>
+        </form>
+
+        <!-- Habit Feedback Toast -->
+        <p id="habitError" class="text-xs text-rose-400 mb-2 hidden">Please enter a habit name first.</p>
+
+        <!-- Habit List -->
+        <ul id="habitList" class="space-y-3 flex-1"></ul>
+
+        <!-- Start New Day / Reset Habits Bar -->
+        <div class="mt-4 pt-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-2">
+          <span class="text-xs text-slate-400">Ready for tomorrow? Keep earned streaks:</span>
+          <button
+            id="resetHabitsBtn"
+            type="button"
+            class="text-xs font-medium text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+          >
+            Uncheck All Habits
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Study & Assignment Tracker with AI Split, Search, Notes, Due Dates, Priorities & Filters -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+              Assignments & Study Tasks
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click ✨ AI Split on any task to generate a step-by-step checklist</p>
+          </div>
+          <span id="assignmentCountBadge" class="text-xs font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-1 rounded-full">
+            0 / 0
+          </span>
+        </div>
+
+        <!-- Add Assignment Form -->
+        <form id="assignmentForm" class="space-y-2.5 mb-4">
+          <input
+            id="assignmentInput"
+            type="text"
+            placeholder="e.g., Submit DBMS Lab Record..."
+            aria-label="New assignment title"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <input
+            id="assignmentNotesInput"
+            type="text"
+            placeholder="Optional study note (e.g., Unit 3 joins, normalization examples)..."
+            aria-label="Optional study note"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <select
+              id="subjectSelect"
+              aria-label="Subject tag"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="AI & DS">AI & DS</option>
+              <option value="DBMS">DBMS</option>
+              <option value="OS">Operating Systems</option>
+              <option value="DSA">Data Structures</option>
+              <option value="Math">Mathematics</option>
+              <option value="Project">Project / Hackathon</option>
+            </select>
+            <select
+              id="prioritySelect"
+              aria-label="Assignment priority"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="High">High Priority</option>
+              <option value="Medium" selected>Medium Priority</option>
+              <option value="Low">Low Priority</option>
+            </select>
+            <input
+              id="dueDateInput"
+              type="date"
+              aria-label="Assignment due date"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            />
+            <button
+              type="submit"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-4 py-2 rounded-xl transition shrink-0"
+            >
+              + Add Task
+            </button>
+          </div>
+        </form>
+
+        <!-- Assignment Feedback Toast -->
+        <p id="assignmentError" class="text-xs text-rose-400 mb-2 hidden">Please enter an assignment title first.</p>
+
+        <!-- Instant Search & Subject Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-3">
+          <input
+            id="searchQueryInput"
+            type="search"
+            placeholder="Search tasks or notes (press / to focus)..."
+            aria-label="Search assignments"
+            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <select
+            id="subjectFilterSelect"
+            aria-label="Filter by subject"
+            class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="ALL">All Subjects</option>
+            <option value="AI & DS">AI & DS</option>
+            <option value="DBMS">DBMS</option>
+            <option value="OS">Operating Systems</option>
+            <option value="DSA">Data Structures</option>
+            <option value="Math">Mathematics</option>
+            <option value="Project">Project / Hackathon</option>
+          </select>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-800">
+          <div id="filterGroup" class="flex gap-1.5" role="group" aria-label="Filter assignments">
+            <button
+              type="button"
+              data-filter="all"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-indigo-600 text-white transition"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              data-filter="pending"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+            >
+              Pending
+            </button>
+            <button
+              type="button"
+              data-filter="completed"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+            >
+              Completed
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400">Sorted by due date</span>
+        </div>
+
+        <!-- Assignment List -->
+        <ul id="assignmentList" class="space-y-2.5 flex-1"></ul>
+      </section>
+
+    </main>
+
+    <!-- 5. Footer Utility & Data Export/Import Bar -->
+    <footer class="flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-400 bg-slate-900/70 border border-slate-800 rounded-2xl px-4 py-3.5">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-medium text-slate-300">Backup & Export:</span>
+        <button
+          id="exportCsvBtn"
+          type="button"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬇ Export CSV (Spreadsheet)
+        </button>
+        <button
+          id="exportJsonBtn"
+          type="button"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬇ Export JSON Backup
+        </button>
+        <label
+          for="importJsonInput"
+          class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬆ Import JSON
+        </label>
+        <input
+          id="importJsonInput"
+          type="file"
+          accept=".json,application/json"
+          class="hidden"
+        />
+        <span id="exportToast" class="text-emerald-400 font-medium hidden"></span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="text-slate-500 hidden sm:inline">Auto-saved to <code class="text-slate-300">localStorage</code></span>
+        <button
+          id="resetDemoBtn"
+          type="button"
+          class="text-slate-400 hover:text-rose-400 underline transition"
+        >
+          Reset to Default Demo Data
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 6. App Logic (JavaScript) -->
+  <script src="js/app.js"></script>
+</body>
+</html>

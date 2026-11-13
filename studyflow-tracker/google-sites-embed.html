@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyFlow — AI-Powered Habit & Assignment Tracker (Step 6)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .task-done {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    /* Light Theme Overrides */
+    body.light-mode {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode header,
+    body.light-mode section,
+    body.light-mode footer,
+    body.light-mode .card-surface {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    }
+    body.light-mode .sub-surface,
+    body.light-mode input[type="text"],
+    body.light-mode input[type="search"],
+    body.light-mode input[type="date"],
+    body.light-mode input[type="password"],
+    body.light-mode select,
+    body.light-mode textarea {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode h1,
+    body.light-mode h2,
+    body.light-mode #timerReadout,
+    body.light-mode .habit-title:not(.task-done),
+    body.light-mode .title-text:not(.task-done),
+    body.light-mode .subj-name {
+      color: #0f172a !important;
+    }
+    body.light-mode .text-slate-400,
+    body.light-mode .text-slate-300 {
+      color: #475569 !important;
+    }
+
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 md:p-8">
+
+  <!-- Main App Container -->
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- 1. Header & Overall Progress Card -->
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-950/70 border border-indigo-800/60 px-2.5 py-1 rounded-full">
+              Step 6: AI Study Copilot & Smart Task Breakdown
+            </span>
+            <span id="saveStatusBadge" class="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Auto-saved locally
+            </span>
+            <button
+              id="themeToggleBtn"
+              type="button"
+              class="text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-full transition"
+            >
+              ☀️ Light Mode
+            </button>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            StudyFlow Tracker
+          </h1>
+          <p class="text-sm text-slate-400 mt-1">
+            AI-assisted study scheduling, 7-day habit streaks, Pomodoro focus timer, and coursework organizer.
+          </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">7-Day Habit Rate</div>
+            <div id="weeklyHabitRateText" class="text-lg font-bold text-amber-400">0%</div>
+          </div>
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">Focus Logged</div>
+            <div id="focusMinutesText" class="text-lg font-bold text-emerald-400">0 mins</div>
+          </div>
+          <div class="sub-surface bg-slate-950/80 border border-slate-800 px-3.5 py-2.5 rounded-xl text-right">
+            <div class="text-xs text-slate-400">Today's Completion</div>
+            <div id="overallStatsText" class="text-lg font-bold text-indigo-400">0 / 0 Done (0%)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-4">
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="overallProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. NEW IN STEP 6: AI Study Copilot Panel -->
+    <section class="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 sm:p-6 shadow-lg space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            <h2 class="text-lg font-bold text-white">✨ AI Study Copilot</h2>
+            <span id="aiEngineModeBadge" class="text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-0.5 rounded-full">
+              Smart Local AI (Ready)
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Ranks your deadlines, splits complex assignments into subtasks, and builds daily study plans.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            id="aiGeneratePlanBtn"
+            type="button"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition"
+          >
+            ✨ Generate Today's Study Plan
+          </button>
+          <button
+            id="aiQuizMeBtn"
+            type="button"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs px-3.5 py-2 rounded-xl transition"
+          >
+            🧠 Quiz My Pending Subjects
+          </button>
+          <button
+            id="toggleApiKeyDrawerBtn"
+            type="button"
+            class="text-xs text-slate-400 hover:text-indigo-300 px-2.5 py-1.5 rounded-lg border border-slate-800 transition"
+          >
+            ⚙️ Gemini API Key
+          </button>
+        </div>
+      </div>
+
+      <!-- Optional Live Gemini API Key Drawer -->
+      <div id="apiKeyDrawer" class="hidden sub-surface bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label for="geminiApiKeyInput" class="text-xs text-slate-300 font-medium">
+            Optional: Connect live Google Gemini API (<code class="text-indigo-300">gemini-2.5-flash</code>)
+          </label>
+          <span class="text-[11px] text-slate-400">Leaves built-in Smart AI active if left blank</span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input
+            id="geminiApiKeyInput"
+            type="password"
+            placeholder="Paste your Google AI Studio API key (AIza...)..."
+            aria-label="Gemini API Key"
+            class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <button
+            id="saveApiKeyBtn"
+            type="button"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition shrink-0"
+          >
+            Save Key
+          </button>
+          <button
+            id="clearApiKeyBtn"
+            type="button"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-xl transition shrink-0"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Ask AI Study Coach Form -->
+      <form id="aiAskForm" class="flex flex-col sm:flex-row gap-2">
+        <input
+          id="aiPromptInput"
+          type="text"
+          placeholder="Ask AI Coach (e.g., 'Break down my DBMS lab', 'Give me 3 revision tips for OS', 'What should I do first?')..."
+          aria-label="Ask AI Study Coach"
+          class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+        />
+        <button
+          type="submit"
+          id="aiAskSubmitBtn"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition shrink-0"
+        >
+          Ask AI Coach
+        </button>
+      </form>
+
+      <!-- AI Output Card -->
+      <div class="sub-surface bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span id="aiResponseTitle" class="text-xs font-semibold text-indigo-300">
+            AI Recommendation
+          </span>
+          <button
+            id="aiFocusRecommendedBtn"
+            type="button"
+            class="text-[11px] font-medium bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 px-2.5 py-1 rounded-lg transition"
+          >
+            🎯 Load Top Task in Pomodoro Timer
+          </button>
+        </div>
+        <div id="aiResponseBody" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line"></div>
+      </div>
+    </section>
+
+    <!-- 3. Pomodoro Focus Timer + Subject Breakdown Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left: Pomodoro Focus Timer (7 cols on lg) -->
+      <div class="card-surface lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              Pomodoro Focus Timer
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Pick a study task and run a distraction-free session</p>
+          </div>
+
+          <!-- Sound Mute Toggle -->
+          <button
+            id="muteAudioBtn"
+            type="button"
+            class="text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition"
+          >
+            🔔 Chime: On
+          </button>
+        </div>
+
+        <!-- Timer Mode Tabs -->
+        <div id="timerModeGroup" class="flex flex-wrap gap-2 mb-4" role="group" aria-label="Timer duration modes">
+          <button
+            type="button"
+            data-mode="focus"
+            data-minutes="25"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition"
+          >
+            25m Focus
+          </button>
+          <button
+            type="button"
+            data-mode="short"
+            data-minutes="5"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+          >
+            5m Short Break
+          </button>
+          <button
+            type="button"
+            data-mode="long"
+            data-minutes="15"
+            class="timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+          >
+            15m Long Break
+          </button>
+        </div>
+
+        <!-- Clock Display & Controls -->
+        <div class="sub-surface bg-slate-950/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-center sm:text-left">
+            <div id="timerReadout" class="text-4xl sm:text-5xl font-bold font-mono tracking-wider text-white">
+              25:00
+            </div>
+            <p id="timerStatusLabel" class="text-xs text-slate-400 mt-1">
+              Ready to start a 25-minute focus block
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              id="startPauseTimerBtn"
+              type="button"
+              class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition"
+            >
+              Start Timer
+            </button>
+            <button
+              id="resetTimerBtn"
+              type="button"
+              class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm px-4 py-2.5 rounded-xl border border-slate-700 transition"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Focus Target Selector -->
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
+          <label for="focusTaskSelect" class="text-xs font-medium text-slate-400 shrink-0">
+            Currently focusing on:
+          </label>
+          <select
+            id="focusTaskSelect"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+          ></select>
+        </div>
+      </div>
+
+      <!-- Right: Coursework Subject Breakdown (5 cols on lg) -->
+      <div class="card-surface lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                Subject Progress
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Coursework completion by subject</p>
+            </div>
+            <span id="highPriorityCountBadge" class="text-xs font-medium bg-rose-950/80 text-rose-300 border border-rose-800/60 px-2.5 py-1 rounded-full">
+              0 High Priority left
+            </span>
+          </div>
+
+          <!-- Dynamic Subject Bars Container -->
+          <div id="subjectBreakdownList" class="space-y-3 mt-4"></div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 mt-4 pt-3 border-t border-slate-800">
+          Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded">/</kbd> anywhere to jump straight to assignment search.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- 4. Two-Column Layout: Daily Habits + Assignments -->
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- LEFT COLUMN: Daily Study Habits with 7-Day Consistency Grid -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              Daily Study Habits
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Check off today or tap any day pill in the 7-day strip</p>
+          </div>
+          <span id="habitCountBadge" class="text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2.5 py-1 rounded-full">
+            0 / 0
+          </span>
+        </div>
+
+        <!-- Add Habit Form -->
+        <form id="habitForm" class="flex gap-2 mb-4">
+          <input
+            id="habitInput"
+            type="text"
+            placeholder="e.g., Practice Python for 30 mins..."
+            aria-label="New habit name"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          />
+          <button
+            type="submit"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition shrink-0"
+          >
+            + Add
+          </button>
+        </form>
+
+        <!-- Habit Feedback Toast -->
+        <p id="habitError" class="text-xs text-rose-400 mb-2 hidden">Please enter a habit name first.</p>
+
+        <!-- Habit List -->
+        <ul id="habitList" class="space-y-3 flex-1"></ul>
+
+        <!-- Start New Day / Reset Habits Bar -->
+        <div class="mt-4 pt-3 border-t border-slate-800 flex flex-wrap justify-between items-center gap-2">
+          <span class="text-xs text-slate-400">Ready for tomorrow? Keep earned streaks:</span>
+          <button
+            id="resetHabitsBtn"
+            type="button"
+            class="text-xs font-medium text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+          >
+            Uncheck All Habits
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Study & Assignment Tracker with AI Split, Search, Notes, Due Dates, Priorities & Filters -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+              Assignments & Study Tasks
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click ✨ AI Split on any task to generate a step-by-step checklist</p>
+          </div>
+          <span id="assignmentCountBadge" class="text-xs font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-1 rounded-full">
+            0 / 0
+          </span>
+        </div>
+
+        <!-- Add Assignment Form -->
+        <form id="assignmentForm" class="space-y-2.5 mb-4">
+          <input
+            id="assignmentInput"
+            type="text"
+            placeholder="e.g., Submit DBMS Lab Record..."
+            aria-label="New assignment title"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <input
+            id="assignmentNotesInput"
+            type="text"
+            placeholder="Optional study note (e.g., Unit 3 joins, normalization examples)..."
+            aria-label="Optional study note"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <select
+              id="subjectSelect"
+              aria-label="Subject tag"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="AI & DS">AI & DS</option>
+              <option value="DBMS">DBMS</option>
+              <option value="OS">Operating Systems</option>
+              <option value="DSA">Data Structures</option>
+              <option value="Math">Mathematics</option>
+              <option value="Project">Project / Hackathon</option>
+            </select>
+            <select
+              id="prioritySelect"
+              aria-label="Assignment priority"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="High">High Priority</option>
+              <option value="Medium" selected>Medium Priority</option>
+              <option value="Low">Low Priority</option>
+            </select>
+            <input
+              id="dueDateInput"
+              type="date"
+              aria-label="Assignment due date"
+              class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+            />
+            <button
+              type="submit"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-4 py-2 rounded-xl transition shrink-0"
+            >
+              + Add Task
+            </button>
+          </div>
+        </form>
+
+        <!-- Assignment Feedback Toast -->
+        <p id="assignmentError" class="text-xs text-rose-400 mb-2 hidden">Please enter an assignment title first.</p>
+
+        <!-- Instant Search & Subject Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-3">
+          <input
+            id="searchQueryInput"
+            type="search"
+            placeholder="Search tasks or notes (press / to focus)..."
+            aria-label="Search assignments"
+            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          <select
+            id="subjectFilterSelect"
+            aria-label="Filter by subject"
+            class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="ALL">All Subjects</option>
+            <option value="AI & DS">AI & DS</option>
+            <option value="DBMS">DBMS</option>
+            <option value="OS">Operating Systems</option>
+            <option value="DSA">Data Structures</option>
+            <option value="Math">Mathematics</option>
+            <option value="Project">Project / Hackathon</option>
+          </select>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-800">
+          <div id="filterGroup" class="flex gap-1.5" role="group" aria-label="Filter assignments">
+            <button
+              type="button"
+              data-filter="all"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-indigo-600 text-white transition"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              data-filter="pending"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+            >
+              Pending
+            </button>
+            <button
+              type="button"
+              data-filter="completed"
+              class="filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition"
+            >
+              Completed
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400">Sorted by due date</span>
+        </div>
+
+        <!-- Assignment List -->
+        <ul id="assignmentList" class="space-y-2.5 flex-1"></ul>
+      </section>
+
+    </main>
+
+    <!-- 5. Footer Utility & Data Export/Import Bar -->
+    <footer class="flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-400 bg-slate-900/70 border border-slate-800 rounded-2xl px-4 py-3.5">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-medium text-slate-300">Backup & Export:</span>
+        <button
+          id="exportCsvBtn"
+          type="button"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬇ Export CSV (Spreadsheet)
+        </button>
+        <button
+          id="exportJsonBtn"
+          type="button"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬇ Export JSON Backup
+        </button>
+        <label
+          for="importJsonInput"
+          class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬆ Import JSON
+        </label>
+        <input
+          id="importJsonInput"
+          type="file"
+          accept=".json,application/json"
+          class="hidden"
+        />
+        <span id="exportToast" class="text-emerald-400 font-medium hidden"></span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="text-slate-500 hidden sm:inline">Auto-saved to <code class="text-slate-300">localStorage</code></span>
+        <button
+          id="resetDemoBtn"
+          type="button"
+          class="text-slate-400 hover:text-rose-400 underline transition"
+        >
+          Reset to Default Demo Data
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 6. App Logic (JavaScript) -->
+  <script>
+const STORAGE_KEY = "studyflow_tracker_v2";
+    const API_KEY_STORAGE = "studyflow_gemini_api_key";
+    const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    // Helper to build relative YYYY-MM-DD dates for default items
+    function getOffsetDateString(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    // Return index 0..6 for today's day of the week (Mon=0 .. Sun=6)
+    function getTodayWeekIndex() {
+      const jsDay = new Date().getDay(); // 0=Sun..6=Sat
+      return jsDay === 0 ? 6 : jsDay - 1;
+    }
+
+    // Default starter data
+    function getDefaultState() {
+      return {
+        theme: "dark",
+        filter: "all",
+        subjectFilter: "ALL",
+        searchQuery: "",
+        focusMinutesLogged: 0,
+        selectedFocusTarget: "assign-101",
+        habits: [
+          {
+            id: 1,
+            title: "Practice Python or DSA problems for 30 mins",
+            done: false,
+            streak: 0,
+            weekDays: [false, false, false, false, false, false, false]
+          },
+          {
+            id: 2,
+            title: "Review lecture notes from today's classes",
+            done: false,
+            streak: 0,
+            weekDays: [false, false, false, false, false, false, false]
+          },
+          {
+            id: 3,
+            title: "Read 1 AI / Data Science article or paper abstract",
+            done: false,
+            streak: 0,
+            weekDays: [false, false, false, false, false, false, false]
+          }
+        ],
+        assignments: [
+          {
+            id: 101,
+            title: "Complete DBMS SQL Queries Lab Exercise",
+            subject: "DBMS",
+            priority: "High",
+            dueDate: getOffsetDateString(1),
+            notes: "Cover INNER JOIN, GROUP BY HAVING, and 3NF normalization queries.",
+            notesOpen: false,
+            done: false
+          },
+          {
+            id: 102,
+            title: "Prepare Operating Systems CPU Scheduling notes",
+            subject: "OS",
+            priority: "Medium",
+            dueDate: getOffsetDateString(3),
+            notes: "Compare FCFS, SJF (Preemptive), and Round Robin turnaround times.",
+            notesOpen: false,
+            done: false
+          },
+          {
+            id: 103,
+            title: "Draft dataset preprocessing script for mini-project",
+            subject: "AI & DS",
+            priority: "High",
+            dueDate: getOffsetDateString(5),
+            notes: "Handle missing values, normalize numerical features, and split train/test sets.",
+            notesOpen: false,
+            done: false
+          }
+        ]
+      };
+    }
+
+    // --- LOAD & SAVE STATE (localStorage wrapped in try/catch) ---
+    let state = getDefaultState();
+    let geminiApiKey = "";
+
+    function loadState() {
+      try {
+        geminiApiKey = localStorage.getItem(API_KEY_STORAGE) || "";
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.habits) && Array.isArray(parsed.assignments)) {
+            state = {
+              theme: parsed.theme === "light" ? "light" : "dark",
+              filter: parsed.filter || "all",
+              subjectFilter: parsed.subjectFilter || "ALL",
+              searchQuery: parsed.searchQuery || "",
+              focusMinutesLogged: Number(parsed.focusMinutesLogged) || 0,
+              selectedFocusTarget: parsed.selectedFocusTarget || "assign-101",
+              habits: parsed.habits.map((h) => ({
+                id: h.id,
+                title: h.title,
+                done: Boolean(h.done),
+                streak: Number(h.streak) || 0,
+                weekDays: Array.isArray(h.weekDays) && h.weekDays.length === 7
+                  ? h.weekDays.map(Boolean)
+                  : [false, false, false, false, false, false, false]
+              })),
+              assignments: parsed.assignments.map((a) => ({
+                id: a.id,
+                title: a.title,
+                subject: a.subject || "AI & DS",
+                priority: a.priority || "Medium",
+                dueDate: a.dueDate || getOffsetDateString(2),
+                notes: typeof a.notes === "string" ? a.notes : "",
+                notesOpen: Boolean(a.notesOpen),
+                done: Boolean(a.done)
+              }))
+            };
+          }
+        }
+      } catch (err) {
+        // Fallback to in-memory state if storage is blocked
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        const badge = document.getElementById("saveStatusBadge");
+        if (badge) {
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Saved just now`;
+        }
+      } catch (err) {
+        // Ignore storage write errors in restricted previews
+      }
+    }
+
+    // Format due date badge and urgency styling
+    function getDueBadgeInfo(dueDateStr, isDone) {
+      if (!dueDateStr) {
+        return { label: "No due date", classes: "bg-slate-800 text-slate-400" };
+      }
+      const todayStr = getOffsetDateString(0);
+      const tomorrowStr = getOffsetDateString(1);
+
+      if (isDone) {
+        return { label: `Due ${dueDateStr}`, classes: "bg-slate-800/80 text-slate-500" };
+      }
+      if (dueDateStr < todayStr) {
+        return { label: `Overdue (${dueDateStr})`, classes: "bg-rose-950/80 text-rose-300 border border-rose-800/60" };
+      }
+      if (dueDateStr === todayStr) {
+        return { label: "Due Today", classes: "bg-amber-950/80 text-amber-300 border border-amber-800/60" };
+      }
+      if (dueDateStr === tomorrowStr) {
+        return { label: "Due Tomorrow", classes: "bg-indigo-950/80 text-indigo-300 border border-indigo-800/60" };
+      }
+      return { label: `Due ${dueDateStr}`, classes: "bg-slate-800 text-slate-300" };
+    }
+
+    // Format Priority badge styling
+    function getPriorityBadgeInfo(priority) {
+      if (priority === "High") {
+        return { label: "High", classes: "bg-rose-950/80 text-rose-300 border border-rose-800/60" };
+      }
+      if (priority === "Low") {
+        return { label: "Low", classes: "bg-slate-800 text-slate-400 border border-slate-700" };
+      }
+      return { label: "Medium", classes: "bg-amber-950/70 text-amber-300 border border-amber-800/50" };
+    }
+
+    // --- AI COPILOT ENGINE (Smart Local Heuristic + Optional Live Gemini API) ---
+    function getRankedPendingAssignments() {
+      const prioScore = { High: 30, Medium: 20, Low: 10 };
+      const today = getOffsetDateString(0);
+      return state.assignments
+        .filter((a) => !a.done)
+        .slice()
+        .sort((a, b) => {
+          const aOverdue = (a.dueDate || "9999") <= today ? 25 : 0;
+          const bOverdue = (b.dueDate || "9999") <= today ? 25 : 0;
+          const scoreA = (prioScore[a.priority] || 20) + aOverdue;
+          const scoreB = (prioScore[b.priority] || 20) + bOverdue;
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return (a.dueDate || "9999-12-31").localeCompare(b.dueDate || "9999-12-31");
+        });
+    }
+
+    function generateLocalSubtasks(item) {
+      const subj = item.subject || "AI & DS";
+      const templates = {
+        "DBMS": [
+          "1. Review relational schema & ER constraints for the tables",
+          "2. Write and test SELECT / JOIN / GROUP BY queries on sample rows",
+          "3. Verify 3NF normalization & document query outputs in lab record"
+        ],
+        "OS": [
+          "1. Summarize algorithm rules (arrival time, burst time, quantum)",
+          "2. Draw Gantt chart and compute Waiting & Turnaround Time",
+          "3. Compare throughput & context-switch overhead across schedulers"
+        ],
+        "AI & DS": [
+          "1. Inspect dataset shape, missing values, and target distribution",
+          "2. Implement feature scaling / encoding & train-test split",
+          "3. Evaluate baseline metrics (Accuracy / F1 / RMSE) and log results"
+        ],
+        "DSA": [
+          "1. Trace dry-run on edge cases (empty input, duplicates, single node)",
+          "2. Implement core algorithm and verify time/space complexity O(N log N)",
+          "3. Pass all test cases and clean up variable names"
+        ],
+        "Math": [
+          "1. List relevant theorems, definitions, and proof assumptions",
+          "2. Solve step-by-step derivations and verify boundary conditions",
+          "3. Double-check final symbolic or numerical answers"
+        ],
+        "Project": [
+          "1. Define core architecture diagram and MVP user flow",
+          "2. Build and test the primary working module / prototype",
+          "3. Prepare pitch slides and 2-minute demo walkthrough"
+        ]
+      };
+      const steps = templates[subj] || templates["AI & DS"];
+      return `✨ AI Checklist for "${item.title}":\n${steps.join("\n")}`;
+    }
+
+    function generateLocalStudyPlan() {
+      const ranked = getRankedPendingAssignments();
+      const pendingHabits = state.habits.filter((h) => !h.done);
+
+      if (ranked.length === 0 && pendingHabits.length === 0) {
+        return "🎉 All habits and assignments are complete for today! Take a well-earned break or add upcoming coursework.";
+      }
+
+      const lines = [];
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        lines.push(`1️⃣ Priority Deep-Work Block (25m Pomodoro): [${top.subject}] ${top.title} (${top.priority} Priority, Due ${top.dueDate}).`);
+        if (ranked.length > 1) {
+          const second = ranked[1];
+          lines.push(`2️⃣ Next Coursework Block (25m Pomodoro): [${second.subject}] ${second.title} (Due ${second.dueDate}).`);
+        }
+      }
+      if (pendingHabits.length > 0) {
+        lines.push(`3️⃣ Daily Streak Builder (15–20m): Complete "${pendingHabits[0].title}" to protect your 7-day consistency rate.`);
+      }
+      lines.push(`💡 Tip: Click "🎯 Load Top Task in Pomodoro Timer" above to start Block #1 right now.`);
+      return lines.join("\n");
+    }
+
+    function generateLocalQuiz() {
+      const bank = {
+        "DBMS": "Q1: What is the difference between INNER JOIN and LEFT JOIN?\nQ2: Why does 3NF eliminate transitive dependencies?\nQ3: When do you use HAVING instead of WHERE in SQL?",
+        "OS": "Q1: Why does Shortest Remaining Time First (SRTF) minimize average waiting time?\nQ2: How does the time quantum size affect Round Robin context switching?\nQ3: What are the four necessary conditions for a deadlock?",
+        "AI & DS": "Q1: Why must StandardScaler be fit ONLY on the training split and not the test split?\nQ2: When is F1-score preferred over raw Accuracy?\nQ3: How does L2 regularization reduce overfitting?",
+        "DSA": "Q1: What is the time complexity of searching in a balanced Binary Search Tree (TreeSet)?\nQ2: When would you prefer a HashMap over a TreeMap?\nQ3: How does two-pointer traversal optimize subarray problems?",
+        "Math": "Q1: What are the four axioms required for an algebraic structure (G, *) to be a Group?\nQ2: What defines an Abelian group?\nQ3: State Lagrange's Theorem for finite groups.",
+        "Project": "Q1: What is the single core problem your prototype solves in one sentence?\nQ2: How does your architecture handle edge/offline failures?\nQ3: What measurable metric proves your solution is faster or more accurate?"
+      };
+      const pendingSubjects = [...new Set(state.assignments.filter((a) => !a.done).map((a) => a.subject))];
+      const chosenSubj = pendingSubjects[0] || "AI & DS";
+      return `🧠 Quick Active-Recall Quiz (${chosenSubj}):\n${bank[chosenSubj] || bank["AI & DS"]}`;
+    }
+
+    async function runAiQuery(systemTitle, userPrompt, localFallbackFn) {
+      const aiResponseTitle = document.getElementById("aiResponseTitle");
+      const aiResponseBody = document.getElementById("aiResponseBody");
+      aiResponseTitle.textContent = `${systemTitle} (Thinking...)`;
+      aiResponseBody.textContent = "Analyzing your study tasks and habits...";
+
+      if (geminiApiKey && geminiApiKey.trim().length > 10) {
+        try {
+          const contextSummary = JSON.stringify({
+            pendingAssignments: state.assignments.filter((a) => !a.done).map((a) => ({
+              title: a.title,
+              subject: a.subject,
+              priority: a.priority,
+              dueDate: a.dueDate,
+              notes: a.notes
+            })),
+            uncheckedHabits: state.habits.filter((h) => !h.done).map((h) => h.title),
+            focusMinutesLogged: state.focusMinutesLogged
+          });
+
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey.trim())}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: `You are a concise, practical AI Study Coach for an AI & Data Science university student. Keep your answer under 110 words in clean numbered or bulleted lines. Student context: ${contextSummary}\n\nRequest: ${userPrompt}`
+                      }
+                    ]
+                  }
+                ]
+              })
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const text =
+              data &&
+              data.candidates &&
+              data.candidates[0] &&
+              data.candidates[0].content &&
+              data.candidates[0].content.parts &&
+              data.candidates[0].content.parts[0] &&
+              data.candidates[0].content.parts[0].text;
+            if (text) {
+              aiResponseTitle.textContent = `${systemTitle} (via Gemini 2.5 Flash)`;
+              aiResponseBody.textContent = text.trim();
+              return text.trim();
+            }
+          }
+        } catch (err) {
+          // Automatically fall back to Smart Local AI if offline or key is invalid
+        }
+      }
+
+      const fallbackText = localFallbackFn();
+      aiResponseTitle.textContent = systemTitle;
+      aiResponseBody.textContent = fallbackText;
+      return fallbackText;
+    }
+
+    // --- POMODORO TIMER STATE & WEB AUDIO CHIME ---
+    let timerInterval = null;
+    let timerRunning = false;
+    let currentModeMinutes = 25;
+    let currentModeName = "focus";
+    let remainingSeconds = 25 * 60;
+    let audioMuted = false;
+    let audioCtx = null;
+
+    function playCompletionChime() {
+      if (audioMuted) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        const notes = [523.25, 659.25, 783.99];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.15 + 0.45);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + idx * 0.15);
+          osc.stop(audioCtx.currentTime + idx * 0.15 + 0.45);
+        });
+      } catch (e) {
+        // Ignore audio synthesis errors if blocked
+      }
+    }
+
+    function formatClock(totalSecs) {
+      const safeSecs = Math.max(0, totalSecs);
+      const mins = Math.floor(safeSecs / 60);
+      const secs = safeSecs % 60;
+      return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    // --- DOM ELEMENT REFERENCES ---
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const weeklyHabitRateText = document.getElementById("weeklyHabitRateText");
+
+    const aiEngineModeBadge = document.getElementById("aiEngineModeBadge");
+    const aiGeneratePlanBtn = document.getElementById("aiGeneratePlanBtn");
+    const aiQuizMeBtn = document.getElementById("aiQuizMeBtn");
+    const toggleApiKeyDrawerBtn = document.getElementById("toggleApiKeyDrawerBtn");
+    const apiKeyDrawer = document.getElementById("apiKeyDrawer");
+    const geminiApiKeyInput = document.getElementById("geminiApiKeyInput");
+    const saveApiKeyBtn = document.getElementById("saveApiKeyBtn");
+    const clearApiKeyBtn = document.getElementById("clearApiKeyBtn");
+    const aiAskForm = document.getElementById("aiAskForm");
+    const aiPromptInput = document.getElementById("aiPromptInput");
+    const aiFocusRecommendedBtn = document.getElementById("aiFocusRecommendedBtn");
+
+    const habitForm = document.getElementById("habitForm");
+    const habitInput = document.getElementById("habitInput");
+    const habitError = document.getElementById("habitError");
+    const habitList = document.getElementById("habitList");
+    const habitCountBadge = document.getElementById("habitCountBadge");
+    const resetHabitsBtn = document.getElementById("resetHabitsBtn");
+
+    const assignmentForm = document.getElementById("assignmentForm");
+    const assignmentInput = document.getElementById("assignmentInput");
+    const assignmentNotesInput = document.getElementById("assignmentNotesInput");
+    const subjectSelect = document.getElementById("subjectSelect");
+    const prioritySelect = document.getElementById("prioritySelect");
+    const dueDateInput = document.getElementById("dueDateInput");
+    const assignmentError = document.getElementById("assignmentError");
+    const assignmentList = document.getElementById("assignmentList");
+    const assignmentCountBadge = document.getElementById("assignmentCountBadge");
+    const filterGroup = document.getElementById("filterGroup");
+    const searchQueryInput = document.getElementById("searchQueryInput");
+    const subjectFilterSelect = document.getElementById("subjectFilterSelect");
+
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const importJsonInput = document.getElementById("importJsonInput");
+    const exportToast = document.getElementById("exportToast");
+    const resetDemoBtn = document.getElementById("resetDemoBtn");
+
+    const overallStatsText = document.getElementById("overallStatsText");
+    const overallProgressBar = document.getElementById("overallProgressBar");
+    const focusMinutesText = document.getElementById("focusMinutesText");
+    const highPriorityCountBadge = document.getElementById("highPriorityCountBadge");
+    const subjectBreakdownList = document.getElementById("subjectBreakdownList");
+
+    const timerModeGroup = document.getElementById("timerModeGroup");
+    const timerReadout = document.getElementById("timerReadout");
+    const timerStatusLabel = document.getElementById("timerStatusLabel");
+    const startPauseTimerBtn = document.getElementById("startPauseTimerBtn");
+    const resetTimerBtn = document.getElementById("resetTimerBtn");
+    const muteAudioBtn = document.getElementById("muteAudioBtn");
+    const focusTaskSelect = document.getElementById("focusTaskSelect");
+
+    // Set default date picker value to tomorrow
+    dueDateInput.value = getOffsetDateString(1);
+
+    function showExportToast(message) {
+      exportToast.textContent = message;
+      exportToast.classList.remove("hidden");
+      setTimeout(() => {
+        exportToast.classList.add("hidden");
+      }, 3000);
+    }
+
+    function updateTimerUI() {
+      timerReadout.textContent = formatClock(remainingSeconds);
+      startPauseTimerBtn.textContent = timerRunning ? "Pause Timer" : "Start Timer";
+      startPauseTimerBtn.className = timerRunning
+        ? "bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition"
+        : "bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition";
+    }
+
+    function applyTheme() {
+      if (state.theme === "light") {
+        document.body.classList.add("light-mode");
+        themeToggleBtn.textContent = "🌙 Dark Mode";
+      } else {
+        document.body.classList.remove("light-mode");
+        themeToggleBtn.textContent = "☀️ Light Mode";
+      }
+    }
+
+    function updateAiBadge() {
+      if (geminiApiKey && geminiApiKey.trim().length > 10) {
+        aiEngineModeBadge.textContent = "Gemini 2.5 Flash Connected";
+        aiEngineModeBadge.className = "text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2.5 py-0.5 rounded-full";
+      } else {
+        aiEngineModeBadge.textContent = "Smart Local AI (Ready)";
+        aiEngineModeBadge.className = "text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-0.5 rounded-full";
+      }
+    }
+
+    // --- RENDER FUNCTION ---
+    function renderApp() {
+      applyTheme();
+      updateAiBadge();
+
+      if (searchQueryInput.value !== state.searchQuery) {
+        searchQueryInput.value = state.searchQuery;
+      }
+      if (subjectFilterSelect.value !== state.subjectFilter) {
+        subjectFilterSelect.value = state.subjectFilter;
+      }
+
+      const todayIdx = getTodayWeekIndex();
+
+      // 1. Render Habits with Streak Badges + 7-Day Consistency Pills
+      habitList.innerHTML = "";
+      if (state.habits.length === 0) {
+        habitList.innerHTML = `<li class="text-xs text-slate-500 italic py-4 text-center border border-dashed border-slate-800 rounded-xl">No daily habits yet. Add one above!</li>`;
+      } else {
+        state.habits.forEach((habit) => {
+          if (!Array.isArray(habit.weekDays) || habit.weekDays.length !== 7) {
+            habit.weekDays = [false, false, false, false, false, false, false];
+          }
+          const li = document.createElement("li");
+          li.className = "sub-surface bg-slate-950/70 border border-slate-800/90 px-3.5 py-3 rounded-xl hover:border-slate-700 transition space-y-2.5";
+          const streakActive = habit.streak > 0;
+
+          const weekButtonsHtml = DAY_LABELS.map((dayName, dIdx) => {
+            const checked = Boolean(habit.weekDays[dIdx]);
+            const isToday = dIdx === todayIdx;
+            return `
+              <button
+                type="button"
+                data-action="toggle-weekday"
+                data-id="${habit.id}"
+                data-day="${dIdx}"
+                title="Toggle ${dayName}"
+                class="flex-1 text-[10px] font-semibold py-1 rounded-lg border transition ${
+                  checked
+                    ? "bg-emerald-600 text-white border-emerald-500"
+                    : isToday
+                    ? "bg-slate-900 text-indigo-300 border-indigo-500/70"
+                    : "bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                ${dayName}
+              </button>
+            `;
+          }).join("");
+
+          li.innerHTML = `
+            <div class="flex items-center justify-between gap-3">
+              <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  data-action="toggle-habit"
+                  data-id="${habit.id}"
+                  ${habit.done ? "checked" : ""}
+                  class="w-4 h-4 rounded accent-emerald-500 cursor-pointer shrink-0"
+                />
+                <span class="text-sm truncate ${habit.done ? "task-done" : "text-slate-200"} habit-title"></span>
+              </label>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                streakActive
+                  ? "bg-amber-950/80 text-amber-300 border border-amber-800/60"
+                  : "bg-slate-800 text-slate-400"
+              }">
+                🔥 ${habit.streak}d
+              </span>
+              <button
+                type="button"
+                data-action="delete-habit"
+                data-id="${habit.id}"
+                title="Delete habit"
+                class="text-xs text-slate-500 hover:text-rose-400 px-2 py-1 rounded transition shrink-0"
+              >
+                Remove
+              </button>
+            </div>
+            <div class="flex items-center gap-1 pt-1">
+              ${weekButtonsHtml}
+            </div>
+          `;
+          li.querySelector(".habit-title").textContent = habit.title;
+          habitList.appendChild(li);
+        });
+      }
+
+      // 2. Update Filter Tab Styling
+      const filterButtons = filterGroup.querySelectorAll(".filter-btn");
+      filterButtons.forEach((btn) => {
+        const isCurrent = btn.getAttribute("data-filter") === state.filter;
+        btn.className = isCurrent
+          ? "filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-indigo-600 text-white transition"
+          : "filter-btn text-xs font-medium px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition";
+      });
+
+      // 3. Filter and Sort Assignments by Status, Subject, Search Query & Due Date
+      const query = (state.searchQuery || "").trim().toLowerCase();
+      const filteredAssignments = state.assignments
+        .filter((item) => {
+          if (state.filter === "pending" && item.done) return false;
+          if (state.filter === "completed" && !item.done) return false;
+          if (state.subjectFilter !== "ALL" && item.subject !== state.subjectFilter) return false;
+          if (query) {
+            const haystack = `${item.title} ${item.subject} ${item.notes || ""}`.toLowerCase();
+            if (!haystack.includes(query)) return false;
+          }
+          return true;
+        })
+        .slice()
+        .sort((a, b) => (a.dueDate || "9999-12-31").localeCompare(b.dueDate || "9999-12-31"));
+
+      assignmentList.innerHTML = "";
+      if (filteredAssignments.length === 0) {
+        assignmentList.innerHTML = `<li class="text-xs text-slate-500 italic py-4 text-center border border-dashed border-slate-800 rounded-xl">No matching assignments found.</li>`;
+      } else {
+        filteredAssignments.forEach((item) => {
+          const dueBadge = getDueBadgeInfo(item.dueDate, item.done);
+          const prioBadge = getPriorityBadgeInfo(item.priority || "Medium");
+          const hasNotes = Boolean((item.notes || "").trim());
+          const li = document.createElement("li");
+          li.className = "sub-surface bg-slate-950/70 border border-slate-800/90 px-3.5 py-2.5 rounded-xl hover:border-slate-700 transition space-y-2";
+          li.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <label class="flex items-start gap-3 cursor-pointer flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  data-action="toggle-assignment"
+                  data-id="${item.id}"
+                  ${item.done ? "checked" : ""}
+                  class="w-4 h-4 mt-0.5 rounded accent-indigo-500 cursor-pointer shrink-0"
+                />
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm truncate ${item.done ? "task-done" : "text-slate-200"} title-text"></div>
+                  <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span class="text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-800/50 px-2 py-0.5 rounded-md subject-badge"></span>
+                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-md ${prioBadge.classes} prio-badge"></span>
+                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-md ${dueBadge.classes} due-badge"></span>
+                  </div>
+                </div>
+              </label>
+              <div class="flex flex-wrap items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  data-action="ai-split"
+                  data-id="${item.id}"
+                  title="Generate AI step-by-step subtasks"
+                  class="text-xs px-2 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition"
+                >
+                  ✨ AI Split
+                </button>
+                <button
+                  type="button"
+                  data-action="toggle-notes"
+                  data-id="${item.id}"
+                  title="View or edit study notes"
+                  class="text-xs px-2 py-1 rounded transition ${
+                    hasNotes
+                      ? "bg-indigo-950/70 text-indigo-300 hover:bg-indigo-900/80"
+                      : "text-slate-400 hover:text-slate-200 bg-slate-900"
+                  }"
+                >
+                  📝 ${hasNotes ? "Notes" : "+ Note"}
+                </button>
+                <button
+                  type="button"
+                  data-action="delete-assignment"
+                  data-id="${item.id}"
+                  title="Delete assignment"
+                  class="text-xs text-slate-500 hover:text-rose-400 px-2 py-1 rounded transition"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+            <div class="notes-drawer ${item.notesOpen ? "" : "hidden"} pt-2 border-t border-slate-800/80">
+              <textarea
+                data-action="edit-notes"
+                data-id="${item.id}"
+                rows="3"
+                placeholder="Write syllabus points, formulas, or lab links here..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 notes-textarea"
+              ></textarea>
+            </div>
+          `;
+          li.querySelector(".title-text").textContent = item.title;
+          li.querySelector(".subject-badge").textContent = item.subject;
+          li.querySelector(".prio-badge").textContent = `${prioBadge.label} Priority`;
+          li.querySelector(".due-badge").textContent = dueBadge.label;
+          li.querySelector(".notes-textarea").value = item.notes || "";
+          assignmentList.appendChild(li);
+        });
+      }
+
+      // 4. Populate Focus Task Selector Dropdown
+      focusTaskSelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "general";
+      defaultOpt.textContent = "General Study Session";
+      focusTaskSelect.appendChild(defaultOpt);
+
+      state.assignments.filter((a) => !a.done).forEach((a) => {
+        const opt = document.createElement("option");
+        opt.value = `assign-${a.id}`;
+        opt.textContent = `[${a.subject}] ${a.title}`;
+        focusTaskSelect.appendChild(opt);
+      });
+
+      state.habits.filter((h) => !h.done).forEach((h) => {
+        const opt = document.createElement("option");
+        opt.value = `habit-${h.id}`;
+        opt.textContent = `[Habit] ${h.title}`;
+        focusTaskSelect.appendChild(opt);
+      });
+
+      if ([...focusTaskSelect.options].some((o) => o.value === state.selectedFocusTarget)) {
+        focusTaskSelect.value = state.selectedFocusTarget;
+      }
+
+      // 5. Render Subject Breakdown Progress Bars
+      const subjectTotals = {};
+      state.assignments.forEach((a) => {
+        const subj = a.subject || "Other";
+        if (!subjectTotals[subj]) {
+          subjectTotals[subj] = { total: 0, done: 0 };
+        }
+        subjectTotals[subj].total += 1;
+        if (a.done) subjectTotals[subj].done += 1;
+      });
+
+      subjectBreakdownList.innerHTML = "";
+      const subjects = Object.keys(subjectTotals);
+      if (subjects.length === 0) {
+        subjectBreakdownList.innerHTML = `<p class="text-xs text-slate-500 italic py-3 text-center">Add assignments to see subject breakdown.</p>`;
+      } else {
+        subjects.forEach((subj) => {
+          const info = subjectTotals[subj];
+          const pct = info.total > 0 ? Math.round((info.done / info.total) * 100) : 0;
+          const row = document.createElement("div");
+          row.className = "space-y-1";
+          row.innerHTML = `
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-200 subj-name"></span>
+              <span class="text-slate-400">${info.done} / ${info.total} (${pct}%)</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+          `;
+          row.querySelector(".subj-name").textContent = subj;
+          subjectBreakdownList.appendChild(row);
+        });
+      }
+
+      // 6. Update Counters, 7-Day Rate & Overall Progress Bar
+      const habitsDone = state.habits.filter((h) => h.done).length;
+      const assignmentsDone = state.assignments.filter((a) => a.done).length;
+      const totalItems = state.habits.length + state.assignments.length;
+      const totalDone = habitsDone + assignmentsDone;
+      const percent = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
+      const pendingHighPrio = state.assignments.filter((a) => !a.done && (a.priority || "Medium") === "High").length;
+
+      const totalWeekSlots = state.habits.length * 7;
+      const checkedWeekSlots = state.habits.reduce(
+        (acc, h) => acc + (Array.isArray(h.weekDays) ? h.weekDays.filter(Boolean).length : 0),
+        0
+      );
+      const weeklyRate = totalWeekSlots > 0 ? Math.round((checkedWeekSlots / totalWeekSlots) * 100) : 0;
+
+      habitCountBadge.textContent = `${habitsDone} / ${state.habits.length} done`;
+      assignmentCountBadge.textContent = `${assignmentsDone} / ${state.assignments.length} done`;
+      overallStatsText.textContent = `${totalDone} / ${totalItems} Done (${percent}%)`;
+      overallProgressBar.style.width = `${percent}%`;
+      focusMinutesText.textContent = `${state.focusMinutesLogged} mins`;
+      weeklyHabitRateText.textContent = `${weeklyRate}%`;
+      highPriorityCountBadge.textContent = `${pendingHighPrio} High Priority left`;
+    }
+
+    // --- EVENT LISTENERS ---
+
+    // Theme Toggle (Dark / Light mode)
+    themeToggleBtn.addEventListener("click", () => {
+      state.theme = state.theme === "light" ? "dark" : "light";
+      saveState();
+      renderApp();
+    });
+
+    // Global Keyboard Shortcut: Press "/" to focus search input
+    document.addEventListener("keydown", (event) => {
+      const tag = (event.target && event.target.tagName) || "";
+      if (event.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+        event.preventDefault();
+        searchQueryInput.focus();
+      }
+    });
+
+    // AI Copilot: Generate Today's Study Plan
+    aiGeneratePlanBtn.addEventListener("click", () => {
+      runAiQuery(
+        "Today's Prioritized Study Plan",
+        "Create a 3-step prioritized study schedule for today based on my pending assignments, deadlines, and daily habits.",
+        generateLocalStudyPlan
+      );
+    });
+
+    // AI Copilot: Quiz My Pending Subjects
+    aiQuizMeBtn.addEventListener("click", () => {
+      runAiQuery(
+        "Active-Recall Revision Questions",
+        "Generate 3 short, high-yield university exam/viva questions based on my top pending assignment subject.",
+        generateLocalQuiz
+      );
+    });
+
+    // AI Copilot: Toggle Optional Gemini API Key Drawer
+    toggleApiKeyDrawerBtn.addEventListener("click", () => {
+      apiKeyDrawer.classList.toggle("hidden");
+      geminiApiKeyInput.value = geminiApiKey;
+    });
+
+    saveApiKeyBtn.addEventListener("click", () => {
+      geminiApiKey = geminiApiKeyInput.value.trim();
+      try {
+        localStorage.setItem(API_KEY_STORAGE, geminiApiKey);
+      } catch (e) {}
+      apiKeyDrawer.classList.add("hidden");
+      updateAiBadge();
+    });
+
+    clearApiKeyBtn.addEventListener("click", () => {
+      geminiApiKey = "";
+      geminiApiKeyInput.value = "";
+      try {
+        localStorage.removeItem(API_KEY_STORAGE);
+      } catch (e) {}
+      updateAiBadge();
+    });
+
+    // AI Copilot: Custom Ask Form
+    aiAskForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const q = aiPromptInput.value.trim();
+      if (!q) return;
+      aiPromptInput.value = "";
+      runAiQuery("AI Coach Answer", q, () => {
+        const lower = q.toLowerCase();
+        if (lower.includes("quiz") || lower.includes("question") || lower.includes("viva")) {
+          return generateLocalQuiz();
+        }
+        if (lower.includes("dbms") || lower.includes("sql")) {
+          return generateLocalSubtasks({ title: q, subject: "DBMS" });
+        }
+        if (lower.includes("os") || lower.includes("scheduling")) {
+          return generateLocalSubtasks({ title: q, subject: "OS" });
+        }
+        return `📌 Coach Advice for "${q}":\n${generateLocalStudyPlan()}`;
+      });
+    });
+
+    // AI Copilot: Load Top Recommended Task into Pomodoro Timer
+    aiFocusRecommendedBtn.addEventListener("click", () => {
+      const ranked = getRankedPendingAssignments();
+      if (ranked.length > 0) {
+        state.selectedFocusTarget = `assign-${ranked[0].id}`;
+        saveState();
+        renderApp();
+        timerStatusLabel.textContent = `Loaded top priority task: [${ranked[0].subject}] ${ranked[0].title}`;
+      } else {
+        timerStatusLabel.textContent = "All assignments completed! Ready for general study.";
+      }
+    });
+
+    // Pomodoro Timer: Start / Pause
+    startPauseTimerBtn.addEventListener("click", () => {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerRunning = false;
+        timerStatusLabel.textContent = "Timer paused — click Start Timer to resume";
+        updateTimerUI();
+        return;
+      }
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerRunning = true;
+      timerStatusLabel.textContent = currentModeName === "focus"
+        ? "Focusing right now — stay on your selected task!"
+        : "Break in progress — recharge your mind!";
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        remainingSeconds -= 1;
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          timerRunning = false;
+          remainingSeconds = currentModeMinutes * 60;
+          playCompletionChime();
+
+          if (currentModeName === "focus") {
+            state.focusMinutesLogged += currentModeMinutes;
+            saveState();
+            renderApp();
+            timerStatusLabel.textContent = `Awesome! +${currentModeMinutes} focus mins logged.`;
+          } else {
+            timerStatusLabel.textContent = "Break complete! Ready for another focus block?";
+          }
+          updateTimerUI();
+        } else {
+          timerReadout.textContent = formatClock(remainingSeconds);
+        }
+      }, 1000);
+    });
+
+    // Pomodoro Timer: Reset
+    resetTimerBtn.addEventListener("click", () => {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      remainingSeconds = currentModeMinutes * 60;
+      timerStatusLabel.textContent = `Timer reset to ${currentModeMinutes} minutes`;
+      updateTimerUI();
+    });
+
+    // Pomodoro Timer: Switch Mode (25m Focus / 5m Short Break / 15m Long Break)
+    timerModeGroup.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-mode]");
+      if (!btn) return;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+
+      currentModeName = btn.getAttribute("data-mode");
+      currentModeMinutes = Number(btn.getAttribute("data-minutes")) || 25;
+      remainingSeconds = currentModeMinutes * 60;
+
+      timerModeGroup.querySelectorAll(".timer-mode-btn").forEach((b) => {
+        const active = b === btn;
+        b.className = active
+          ? "timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition"
+          : "timer-mode-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition";
+      });
+
+      timerStatusLabel.textContent = `Switched to ${currentModeMinutes}-minute mode`;
+      updateTimerUI();
+    });
+
+    // Mute / Unmute Audio Chime
+    muteAudioBtn.addEventListener("click", () => {
+      audioMuted = !audioMuted;
+      muteAudioBtn.textContent = audioMuted ? "🔕 Chime: Muted" : "🔔 Chime: On";
+    });
+
+    // Change Active Focus Target
+    focusTaskSelect.addEventListener("change", () => {
+      state.selectedFocusTarget = focusTaskSelect.value;
+      saveState();
+    });
+
+    // Add a new habit
+    habitForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = habitInput.value.trim();
+      if (!text) {
+        habitError.classList.remove("hidden");
+        return;
+      }
+      habitError.classList.add("hidden");
+      state.habits.push({
+        id: Date.now(),
+        title: text,
+        done: false,
+        streak: 0,
+        weekDays: [false, false, false, false, false, false, false]
+      });
+      habitInput.value = "";
+      saveState();
+      renderApp();
+    });
+
+    // Toggle today's habit checkbox, toggle a 7-day pill, or delete a habit
+    habitList.addEventListener("click", (event) => {
+      const actionEl = event.target.closest("[data-action]");
+      if (!actionEl) return;
+      const id = Number(actionEl.getAttribute("data-id"));
+      const action = actionEl.getAttribute("data-action");
+      const todayIdx = getTodayWeekIndex();
+
+      if (action === "toggle-habit") {
+        const habit = state.habits.find((h) => h.id === id);
+        if (habit) {
+          const isNowDone = actionEl.checked;
+          habit.done = isNowDone;
+          if (!Array.isArray(habit.weekDays) || habit.weekDays.length !== 7) {
+            habit.weekDays = [false, false, false, false, false, false, false];
+          }
+          habit.weekDays[todayIdx] = isNowDone;
+          habit.streak = habit.weekDays.filter(Boolean).length;
+          saveState();
+          renderApp();
+        }
+      } else if (action === "toggle-weekday") {
+        const dayIdx = Number(actionEl.getAttribute("data-day"));
+        const habit = state.habits.find((h) => h.id === id);
+        if (habit && dayIdx >= 0 && dayIdx < 7) {
+          if (!Array.isArray(habit.weekDays) || habit.weekDays.length !== 7) {
+            habit.weekDays = [false, false, false, false, false, false, false];
+          }
+          habit.weekDays[dayIdx] = !habit.weekDays[dayIdx];
+          if (dayIdx === todayIdx) {
+            habit.done = habit.weekDays[todayIdx];
+          }
+          habit.streak = habit.weekDays.filter(Boolean).length;
+          saveState();
+          renderApp();
+        }
+      } else if (action === "delete-habit") {
+        state.habits = state.habits.filter((h) => h.id !== id);
+        saveState();
+        renderApp();
+      }
+    });
+
+    // Start a fresh day: uncheck habits while preserving earned streaks
+    resetHabitsBtn.addEventListener("click", () => {
+      state.habits.forEach((h) => {
+        h.done = false;
+      });
+      saveState();
+      renderApp();
+    });
+
+    // Add a new assignment with priority, due date, and optional study notes
+    assignmentForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = assignmentInput.value.trim();
+      if (!text) {
+        assignmentError.classList.remove("hidden");
+        return;
+      }
+      assignmentError.classList.add("hidden");
+      const noteText = assignmentNotesInput.value.trim();
+      state.assignments.push({
+        id: Date.now(),
+        title: text,
+        subject: subjectSelect.value,
+        priority: prioritySelect.value || "Medium",
+        dueDate: dueDateInput.value || getOffsetDateString(1),
+        notes: noteText,
+        notesOpen: Boolean(noteText),
+        done: false
+      });
+      assignmentInput.value = "";
+      assignmentNotesInput.value = "";
+      saveState();
+      renderApp();
+    });
+
+    // Toggle, AI-split, delete, or open notes on an assignment
+    assignmentList.addEventListener("click", async (event) => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+      const id = Number(target.getAttribute("data-id"));
+      const action = target.getAttribute("data-action");
+
+      if (action === "toggle-assignment") {
+        const item = state.assignments.find((a) => a.id === id);
+        if (item) {
+          item.done = target.checked;
+          saveState();
+          renderApp();
+        }
+      } else if (action === "ai-split") {
+        const item = state.assignments.find((a) => a.id === id);
+        if (item) {
+          const generatedChecklist = await runAiQuery(
+            `AI Subtask Breakdown: ${item.subject}`,
+            `Break down the assignment "${item.title}" (${item.subject}) into 3 concrete, actionable study steps.`,
+            () => generateLocalSubtasks(item)
+          );
+          item.notes = item.notes
+            ? `${item.notes}\n\n${generatedChecklist}`
+            : generatedChecklist;
+          item.notesOpen = true;
+          saveState();
+          renderApp();
+        }
+      } else if (action === "toggle-notes") {
+        const item = state.assignments.find((a) => a.id === id);
+        if (item) {
+          item.notesOpen = !item.notesOpen;
+          saveState();
+          renderApp();
+        }
+      } else if (action === "delete-assignment") {
+        state.assignments = state.assignments.filter((a) => a.id !== id);
+        saveState();
+        renderApp();
+      }
+    });
+
+    // Live-save study notes as the user types inside an assignment's note drawer
+    assignmentList.addEventListener("input", (event) => {
+      const target = event.target;
+      if (target.getAttribute("data-action") === "edit-notes") {
+        const id = Number(target.getAttribute("data-id"));
+        const item = state.assignments.find((a) => a.id === id);
+        if (item) {
+          item.notes = target.value;
+          saveState();
+        }
+      }
+    });
+
+    // Search query filter
+    searchQueryInput.addEventListener("input", () => {
+      state.searchQuery = searchQueryInput.value;
+      saveState();
+      renderApp();
+    });
+
+    // Subject dropdown filter
+    subjectFilterSelect.addEventListener("change", () => {
+      state.subjectFilter = subjectFilterSelect.value;
+      saveState();
+      renderApp();
+    });
+
+    // Switch assignment filter tabs (All / Pending / Completed)
+    filterGroup.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-filter]");
+      if (!btn) return;
+      state.filter = btn.getAttribute("data-filter");
+      saveState();
+      renderApp();
+    });
+
+    // Export CSV (Spreadsheet-ready)
+    exportCsvBtn.addEventListener("click", () => {
+      const rows = [
+        ["Type", "Title", "Subject", "Priority", "DueDate_or_Streak", "Status", "Notes"]
+      ];
+      state.habits.forEach((h) => {
+        rows.push([
+          "Habit",
+          h.title,
+          "Daily Habit",
+          "-",
+          `${h.streak} day streak`,
+          h.done ? "Completed" : "Pending",
+          ""
+        ]);
+      });
+      state.assignments.forEach((a) => {
+        rows.push([
+          "Assignment",
+          a.title,
+          a.subject,
+          a.priority || "Medium",
+          a.dueDate || "",
+          a.done ? "Completed" : "Pending",
+          a.notes || ""
+        ]);
+      });
+
+      const csvContent = rows
+        .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `studyflow_export_${getOffsetDateString(0)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showExportToast("CSV exported!");
+    });
+
+    // Export JSON Backup
+    exportJsonBtn.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `studyflow_backup_${getOffsetDateString(0)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showExportToast("JSON backup downloaded!");
+    });
+
+    // Import JSON Backup
+    importJsonInput.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(String(e.target.result));
+          if (parsed && Array.isArray(parsed.habits) && Array.isArray(parsed.assignments)) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            loadState();
+            renderApp();
+            showExportToast("Backup restored!");
+          }
+        } catch (err) {
+          showExportToast("Invalid JSON file");
+        }
+      };
+      reader.readAsText(file);
+      importJsonInput.value = "";
+    });
+
+    // Reset to default demo data
+    resetDemoBtn.addEventListener("click", () => {
+      state = getDefaultState();
+      saveState();
+      renderApp();
+      document.getElementById("aiResponseBody").textContent = generateLocalStudyPlan();
+    });
+
+    // Load saved data, render UI, and populate initial AI recommendation
+    loadState();
+    renderApp();
+    updateTimerUI();
+    document.getElementById("aiResponseBody").textContent = generateLocalStudyPlan();
+
+</script>
+</body>
+</html>

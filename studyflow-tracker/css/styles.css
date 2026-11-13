@@ -1,0 +1,45 @@
+body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .task-done {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    /* Light Theme Overrides */
+    body.light-mode {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode header,
+    body.light-mode section,
+    body.light-mode footer,
+    body.light-mode .card-surface {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    }
+    body.light-mode .sub-surface,
+    body.light-mode input[type="text"],
+    body.light-mode input[type="search"],
+    body.light-mode input[type="date"],
+    body.light-mode input[type="password"],
+    body.light-mode select,
+    body.light-mode textarea {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode h1,
+    body.light-mode h2,
+    body.light-mode #timerReadout,
+    body.light-mode .habit-title:not(.task-done),
+    body.light-mode .title-text:not(.task-done),
+    body.light-mode .subj-name {
+      color: #0f172a !important;
+    }
+    body.light-mode .text-slate-400,
+    body.light-mode .text-slate-300 {
+      color: #475569 !important;
+    }
